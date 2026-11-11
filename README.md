@@ -57,3 +57,15 @@ stand-in visuals in the app's look, not screen captures; they carry the note
 
 - `abstrakt_deck_promo_1080p.mp4`: 1920x1080, 30 fps, H.264 High, yuv420p, `-preset veryfast`
   CRF 20, AAC 320k; 195.533 s; 170,066,882 bytes.
+- `abstrakt_deck_promo_60s_square.mp4`: 1080x1080, 30 fps, H.264, yuv420p, `-preset veryfast`,
+  AAC 320k; 62.500 s; 30,725,759 bytes. Spliced on bar lines (`make_cut.py`):
+
+  | cut time | source time | piece |
+  |---|---|---|
+  | 0:00.000-0:17.467 | 0:25.267-0:42.733 | 2 bars before the title hit -> 8 bars after it |
+  | 0:17.467-0:51.967 | 1:38.667-2:13.167 | chorus 1, its first 20 bars (Store URL from 0:38.3) |
+  | 0:51.967-1:02.500 | 3:05.000-3:15.533 | the outro to the end |
+
+  The title section is 8.5 bars and chorus 1 is 20.5 (verse 1 enters half a bar late), so
+  the cuts drop those half bars and join downbeat to downbeat. Audio checked against the
+  source in each piece: 0 to 2 samples' lag; 10 ms fades at the splices, no clicks.
