@@ -21,13 +21,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FEATURES = os.path.join(HERE, "cache", "features.json")
 DATA = os.path.join(HERE, "data")
 DOWNBEAT_PHASE = 0
-CONFIRMED = None                 # set to "<who>, <date>" once the author checks the starts
+CONFIRMED = "vocal start 0:43.57 and chorus 2 at 2:50.20 confirmed by the author by ear, 2026-11-11"
 
 # (name, role, start s, why)
 RAW = [
     ("intro",     "intro",   0.0,    "pads + voice, no drums: 'ONOJK123 Art presents / Abstrakt... Deck!'"),
     ("title",     "title",   28.77,  "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48): instrumental title hit"),
-    ("verse1",    "verse",   43.57,  "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (inferred; the author's answer was blank)"),
+    ("verse1",    "verse",   43.57,  "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (confirmed by ear)"),
     ("breakdown", "verse",   92.57,  "novelty 0.37; bass drops out (low 0.14), centred voice-band peak: pre-chorus"),
     ("chorus1",   "chorus",  98.67,  "novelty 0.36; biggest lift so far (rms 0.34 -> 0.59, high 0.72)"),
     ("break",     "verse",   134.03, "novelty 0.41; side channel collapses (near-mono at 136 s); chroma matches the intro (0.85)"),

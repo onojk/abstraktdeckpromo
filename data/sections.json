@@ -1,6 +1,6 @@
 {
  "duration": 195.52,
- "confirmed": null,
+ "confirmed": "vocal start 0:43.57 and chorus 2 at 2:50.20 confirmed by the author by ear, 2026-11-11",
  "sections": [
   {
    "name": "intro",
@@ -26,7 +26,7 @@
    "start": 43.567,
    "raw": 43.57,
    "bar": 25.45,
-   "why": "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (inferred; the author's answer was blank)",
+   "why": "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (confirmed by ear)",
    "end": 92.567
   },
   {

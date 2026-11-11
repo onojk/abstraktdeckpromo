@@ -7,12 +7,6 @@ uniform sampler2D t_reactive, t_dance;
 uniform float n_reactive, n_dance;
 uniform float cap_r, cap2_r, zoom;
 
-float band(float k) {
-    int i = int(clamp(k, 0.0, 15.0));
-    int j = min(i + 1, 15);
-    return mix(spec[i], spec[j], fract(k));
-}
-
 // hex cell: returns (local offset from cell centre, cell id)
 vec4 hexcell(vec2 p) {
     const vec2 s = vec2(1.0, 1.7320508);

@@ -30,8 +30,30 @@ FONT_LOGO = "/usr/share/fonts/opentype/inter/InterDisplay-Black.otf"
 SEED = 0xAD5C
 WARMUP = 45                      # frames rendered before --start so feedback trails settle
 
-# which scene draws each section (the rest show a labelled placeholder until built)
-SCENES = {"intro": "intro", "title": "title", "verse1": "hexa"}
+FONT_URL = "/usr/share/fonts/fonts-go/Go-Mono-Bold.ttf"            # drawn large, sampled LINEAR
+
+# The timeline: (section, bars after its start, scene, footage slot). Bars count on the beat
+# grid from the section's first beat (4 beats a bar), so every cut lands on a beat. A section
+# with no entry shows the labelled fallback.
+TIMELINE = [
+    ("intro",     0,  "intro",     None),
+    ("title",     0,  "title",     None),
+    ("verse1",    0,  "hexa",      None),
+    ("verse1",    8,  "kaleido",   "kaleido"),
+    ("verse1",    16, "blackhole", "blackhole"),
+    ("breakdown", 0,  "scanline",  None),
+    ("chorus1",   0,  "chorus",    None),
+    ("break",     0,  "crack",     None),
+    ("verse2",    0,  "rust",      None),
+    ("verse2",    6,  "grid",      "grid"),
+    ("verse2",    12, "record",    "record"),
+    ("chorus2",   0,  "chorus",    None),
+    ("outro",     0,  "outro",     None),
+]
+URL_BARS_CHORUS1 = 12            # chorus 1 adds the Store URL for its last ~8 bars (the 60 s cut ends there)
+FOOT_EXT = (".mp4", ".mov", ".mkv", ".webm")
+GREETZ = ("GREETZ TO ALL SCENERS  *  THE RUST & WGPU CREWS  *  EVERY VJ AND NOISEMAKER  *  "
+          "AND YOU, FOR WATCHING!")
 
 TEXTS = {   # name: (text, font, size px, pixel)
     "onojk":     ("ONOJK123", FONT_PIXEL, 18, True),
@@ -42,6 +64,22 @@ TEXTS = {   # name: (text, font, size px, pixel)
     "reactive":  ("AUDIO-REACTIVE", FONT_PIXEL, 18, True),
     "dance":     ("VISUALS THAT DANCE TO YOUR MUSIC", FONT_PIXEL, 18, True),
     "todo":      ("SCENE TO COME", FONT_PIXEL, 18, True),
+    "ph":        ("[ PLACEHOLDER: APP FOOTAGE ]", FONT_PIXEL, 18, True),
+    "kaleido":   ("KALEIDOSCOPES", FONT_PIXEL, 18, True),
+    "blackhole": ("BLACK-HOLE FEEDBACK", FONT_PIXEL, 18, True),
+    "grid":      ("MULTI-PANEL GRIDS", FONT_PIXEL, 18, True),
+    "builtin":   ("BUILT IN", FONT_PIXEL, 18, True),
+    "rustwgpu":  ("RUST + WGPU", FONT_LOGO, 220, False),
+    "record":    ("RECORD STRAIGHT TO VIDEO", FONT_PIXEL, 18, True),
+    "f12":       ("PRESS F12", FONT_PIXEL, 18, True),
+    "rec":       ("REC", FONT_PIXEL, 18, True),
+    "nowonthe":  ("NOW ON THE", FONT_PIXEL, 18, True),
+    "msstore":   ("MICROSOFT STORE", FONT_LOGO, 220, False),
+    "url":       ("apps.microsoft.com/detail/9NR8XFDVFN48", FONT_URL, 120, False),
+    "linux":     ("ALSO ON LINUX: SNAP STORE & PPA", FONT_PIXEL, 18, True),
+    "platforms": ("SNAP STORE * PPA * WINDOWS", FONT_PIXEL, 18, True),
+    "crack":     ("ABSTRAKT DECK", FONT_PIXEL, 18, True),
+    "greetz":    (GREETZ, FONT_PIXEL, 18, True),
 }
 
 VERT = """
@@ -94,6 +132,61 @@ vec3 copper(float y, float yc, float half_h, float hue) {
     if (d > 1.0) return vec3(0.0);
     float pr = 1.0 - d * d;
     return mix(hsv(hue, 0.85, 1.0) * pr, vec3(1.0), pow(pr, 8.0));
+}
+float band(float k) {
+    int i = int(clamp(k, 0.0, 15.0));
+    int j = min(i + 1, 15);
+    return mix(spec[i], spec[j], fract(clamp(k, 0.0, 15.0)));
+}
+// 3D starfield; warp stretches the stars along their direction from the centre
+vec3 stars(vec2 p, float spd, float warp) {
+    vec3 c = vec3(0.0);
+    for (int l = 0; l < 7; l++) {
+        float fl = float(l);
+        float z = fract(fl / 7.0 - time * spd);
+        float scale = mix(0.4, 9.0, z);
+        vec2 q = p * scale + fl * 17.3;
+        vec2 id = floor(q), f = fract(q) - 0.5;
+        vec2 o = hash22(id + fl * 3.1) - 0.5;
+        if (hash21(id + fl) > 0.55) continue;
+        vec2 d = f - o * 0.8;
+        vec2 dir = normalize((id + 0.5 + o * 0.8 - fl * 17.3) / scale + 1e-4);
+        float along = dot(d, dir), across = dot(d, vec2(-dir.y, dir.x));
+        along /= 1.0 + warp * 22.0 * (1.0 - z);
+        float r = length(vec2(along, across));
+        float size = 0.03 + 0.05 * (1.0 - z);
+        float b = smoothstep(size, 0.0, r) * smoothstep(1.0, 0.6, z) * (1.0 - z * 0.7);
+        c += b * mix(vec3(0.7, 0.85, 1.0), hsv(hash21(id), 0.5, 1.0), 0.35);
+    }
+    return c;
+}
+// App footage: st in 0..1 (mirrored outside). With no clip in footage/ yet, a stand-in in
+// the app's own look (rainbow rings inside a turning polygon, reacting to the spectrum).
+uniform sampler2D t_foot, t_ph;
+uniform float has_foot, foot_aspect;
+vec3 foot(vec2 st) {
+    st = 1.0 - abs(1.0 - mod(st, 2.0));
+    if (has_foot > 0.5) return texture(t_foot, st).rgb;
+    vec2 p = (st - 0.5) * 2.0 * vec2(foot_aspect, 1.0);
+    float n = 6.0, a = atan(p.y, p.x) + time * 0.25;
+    float r = length(p) * cos(PI / n) / cos(mod(a, TAU / n) - PI / n);
+    float b = band(r * 9.0);
+    float ring = r * 9.0 / (0.85 + 0.25 * low);
+    vec3 c = hsv(floor(ring) / 9.0 * 1.3 - time * 0.35, 0.9, 1.0);
+    c *= 0.75 + 0.25 * smoothstep(0.0, 0.15, fract(ring));      // a dark seam between rings
+    return c * (0.4 + 0.7 * b);
+}
+// the label shown in every footage slot until a real clip is in
+vec3 ph_label(vec3 col, vec2 p, vec2 c) {
+    if (has_foot > 0.5) return col;
+    float blink = 0.6 + 0.4 * step(0.5, fract(time * 1.2));
+    vec2 ts = vec2(textureSize(t_ph, 0));
+    float h = 0.075, w = h * ts.x / ts.y;
+    vec2 d = abs(p - c) - vec2(w * 0.5 + 0.03, h * 0.5 + 0.025);
+    float box = step(max(d.x, d.y), 0.0);
+    float edge = box * (1.0 - step(max(d.x, d.y), -0.006));
+    float a = text(t_ph, p, c, h, 1.8);
+    return mix(col, vec3(0.0), 0.92 * box) + vec3(1.0, 0.85, 0.2) * (a * blink + edge);
 }
 """
 
@@ -213,6 +306,16 @@ class Renderer:
         tx.repeat_x = tx.repeat_y = False
         self.tex[name] = tx
 
+    def set_foot(self, arr):
+        """The current app-footage frame (h, w, 3) uint8, top row first."""
+        h, w, _ = arr.shape
+        tx = self.tex.get("foot")
+        if tx is None or tx.size != (w, h):
+            tx = self.ctx.texture((w, h), 3)
+            tx.filter = (moderngl.LINEAR, moderngl.LINEAR)
+            self.tex["foot"] = tx
+        tx.write(np.ascontiguousarray(arr[::-1]).tobytes())
+
     def program(self, frag):
         prog = self.ctx.program(vertex_shader=VERT, fragment_shader=frag)
         return prog, self.ctx.vertex_array(prog, [(self.quad, "2f", "pos")])
@@ -288,6 +391,55 @@ def ramp(t, a, b):
 def decay(t, t0, tau):
     return float(np.exp(-(t - t0) / tau)) if t >= t0 else 0.0
 
+class Footage:
+    """App recordings in footage/<slot>.mp4 (git-ignored), decoded on demand to a fixed-size
+    RGB frame (scaled to cover, centre-cropped) at 30 fps and looped. Frames are read
+    sequentially from one ffmpeg process; a jump restarts it at the wanted frame."""
+    def __init__(self, W, H):
+        self.W, self.H = W, H
+        self.proc = self.key = None
+        self.next, self.last = 0, None
+        self.n = {}
+
+    def path(self, slot):
+        for ext in FOOT_EXT:
+            p = os.path.join(HERE, "footage", slot + ext)
+            if os.path.exists(p):
+                return p
+        return None
+
+    def frames(self, p):
+        if p not in self.n:
+            d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                                      "-of", "csv=p=0", p], capture_output=True, text=True).stdout)
+            self.n[p] = max(1, int(d * FPS) - 1)
+        return self.n[p]
+
+    def frame(self, slot, idx):
+        p = self.path(slot)
+        if p is None:
+            return None
+        idx %= self.frames(p)
+        if self.key == p and idx == self.next - 1 and self.last is not None:
+            return self.last
+        if self.key != p or idx != self.next:
+            if self.proc:
+                self.proc.kill(); self.proc.wait()
+            vf = (f"fps={FPS},scale={self.W}:{self.H}:force_original_aspect_ratio=increase,"
+                  f"crop={self.W}:{self.H}")
+            self.proc = subprocess.Popen(["ffmpeg", "-v", "error", "-ss", f"{idx / FPS:.4f}", "-i", p,
+                                          "-an", "-vf", vf, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                                         stdout=subprocess.PIPE)
+            self.key, self.next = p, idx
+        n = self.W * self.H * 3
+        raw = self.proc.stdout.read(n)
+        if len(raw) < n:                                  # ran short of the probed length: loop
+            self.key = None
+            return self.frame(slot, 0)
+        self.last = np.frombuffer(raw, np.uint8).reshape(self.H, self.W, 3)
+        self.next = idx + 1
+        return self.last
+
 class Film:
     def __init__(self, W, H):
         self.sync = Sync()
@@ -296,6 +448,8 @@ class Film:
             self.r.add_texture(name, text_image(text, font, size), nearest=pixel)
         self.n_chars = {k: float(len(v[0])) for k, v in TEXTS.items()}
         self.sec_index = {s["name"]: i for i, s in enumerate(self.sync.sections)}
+        self.timeline(0.0)
+        self.footage = Footage(*((640, 360) if H <= 480 else (1280, 720)))
 
     # --- per-scene uniforms: u is the shared sync dict, post the post-pass dict ---------
     def scene_intro(self, s, t, u, post):
@@ -339,16 +493,134 @@ class Film:
         post["glitch"] = 0.5 * decay(t, s["start"], 0.25) + 0.25 * float(u["bar_ph"] < 0.04)
         post["aberr"] = 0.0015 + 0.003 * u["kick"]
 
+    # --- the scenes after the title -----------------------------------------------------
+    def scene_kaleido(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["segs"] = float((6, 8, 12, 8)[int(lt / (8 * bp)) % 4])      # new fold every 2 bars
+        u["zoom"] = 1.0 + 0.10 * u["kick"]
+        u["cap_r"] = (lt - bp) / (13 * bp / 4)
+        post["flash"] = 0.6 * decay(t, s["start"], 0.1)
+        post["glitch"] = 0.5 * decay(t, s["start"], 0.25) + 0.3 * float(lt % (8 * bp) < 0.07)
+        post["aberr"] = 0.0015 + 0.003 * u["kick"]
+
+    def scene_blackhole(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["cap_r"] = (lt - bp) / (19 * bp / 4)
+        u["pull"] = ramp(t, s["start"], s["end"])                     # tightens toward the breakdown
+        post["flash"] = 0.6 * decay(t, s["start"], 0.1)
+        post["glitch"] = 0.5 * decay(t, s["start"], 0.25) + 0.2 * float(u["bar_ph"] < 0.04)
+        post["aberr"] = 0.002 + 0.004 * u["kick"]
+
+    def scene_scanline(self, s, t, u, post):
+        bp = self.sync.period
+        u["squeeze"] = ramp(t, s["start"], s["start"] + 4 * bp)       # CRT collapses to a line in a bar
+        u["dot"] = ramp(t, s["end"] - 2 * bp, s["end"])              # then to a dot
+        post["glitch"] = 0.25 * u["pulse"]
+        post["flash"] = 0.4 * decay(t, s["start"], 0.1)
+
+    def scene_chorus(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        sec = s["section"]
+        url_t = s["start"] + (URL_BARS_CHORUS1 * 4 * bp if sec == "chorus1" else 2 * bp)
+        u["slam"] = decay(t, s["start"], 0.09)
+        u["now_r"] = (lt - 0.5 * bp) / (10 * bp / 4)
+        u["url_on"] = ramp(t, url_t, url_t + bp)
+        u["url_r"] = (t - url_t) / (38 * bp / 8)                       # a char per 32nd
+        u["linux_on"] = ramp(t, url_t + 4 * bp, url_t + 5 * bp) if sec == "chorus2" else 0.0
+        u["linux_r"] = (t - url_t - 4 * bp) / (31 * bp / 8)
+        post["flash"] = 0.9 * decay(t, s["start"], 0.12)
+        post["shake_x"] = 0.015 * decay(t, s["start"], 0.25) * np.sin(t * 91.0)
+        post["shake_y"] = 0.015 * decay(t, s["start"], 0.25) * np.cos(t * 77.0)
+        # downbeat glitches, but never once the URL is up: it must stay readable
+        post["glitch"] = 0.6 * decay(t, s["start"], 0.3) + 0.35 * float(u["bar_ph"] < 0.05) * (1 - u["url_on"])
+        post["aberr"] = 0.0015 + 0.003 * u["kick"] * (1 - 0.7 * u["url_on"])
+
+    def scene_crack(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["r1"] = lt / (13 * bp / 4)
+        post["flash"] = 0.5 * decay(t, s["start"], 0.1)
+        post["glitch"] = 0.4 * decay(t, s["start"], 0.3) + 0.6 * ramp(t, s["end"] - bp, s["end"])
+
+    def scene_rust(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["r1"] = (lt - 0.5 * bp) / (8 * bp / 4)
+        u["slam"] = decay(t, s["start"] + 2 * bp, 0.09) if lt >= 2 * bp else 0.0
+        u["shown"] = float(lt >= 2 * bp)
+        post["flash"] = 0.8 * decay(t, s["start"], 0.1) + 0.5 * (decay(t, s["start"] + 2 * bp, 0.1) if lt >= 2 * bp else 0)
+        post["glitch"] = 0.5 * decay(t, s["start"], 0.25) + 0.3 * float(u["bar_ph"] < 0.04)
+
+    def scene_grid(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["tiles"] = float(min(4, 2 + int(lt / (8 * bp))))            # 2x2, 3x3 after 2 bars, 4x4
+        u["cap_r"] = (lt - bp) / (17 * bp / 4)
+        post["flash"] = 0.6 * decay(t, s["start"], 0.1)
+        post["glitch"] = 0.5 * decay(t, s["start"], 0.25) + 0.4 * float(lt % (8 * bp) < 0.07 and lt > 1)
+
+    def scene_record(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        u["cap_r"] = (lt - bp) / (24 * bp / 4)
+        u["f12_r"] = (lt - 6 * bp) / (9 * bp / 4)
+        u["rec_on"] = float((lt / bp) % 2 < 1.0)                     # REC blinks a beat on, a beat off
+        u["press"] = decay(t, s["start"], 0.15)
+        post["flash"] = 0.6 * decay(t, s["start"], 0.1)
+        post["glitch"] = 0.4 * decay(t, s["start"], 0.25) + 0.7 * ramp(t, s["end"] - bp, s["end"])
+
+    def scene_outro(self, s, t, u, post):
+        bp = self.sync.period
+        lt = t - s["start"]
+        end = self.sync.duration
+        u["plat_r"] = (lt - 0.5 * bp) / (26 * bp / 8)
+        # the greetz cross the screen from right edge to off the left by the music's end
+        u["scroll"] = (t - s["start"]) / (self.sync.hits["music_end"] - s["start"])
+        post["flash"] = 0.5 * decay(t, s["start"], 0.1)
+        post["fade"] = 1.0 - ramp(t, self.sync.hits["music_end"], end - 0.3)
+
+    def timeline(self, t):
+        """The scene segment at time t: dict(scene, slot, start, end, section)."""
+        segs = []
+        for sec, bars, scene, slot in TIMELINE:
+            S = self.sync.by_name[sec]
+            if bars == 0:
+                start = S["start"]
+            else:
+                k = int(np.argmin(np.abs(self.sync.beats - S["start"]))) + 4 * bars
+                start = float(self.sync.beats[k])
+            segs.append({"scene": scene, "slot": slot, "start": start, "section": sec})
+        for i, g in enumerate(segs):
+            g["end"] = segs[i + 1]["start"] if i + 1 < len(segs) else self.sync.duration
+        self.segs = segs
+        return segs
+
+    def segment(self, t):
+        for g in self.segs:
+            if g["start"] <= t < g["end"]:
+                return g
+        return self.segs[-1]
+
     def frame(self, fi):
         t = fi / FPS
-        s = self.sync.section(t)
-        name = SCENES.get(s["name"], "todo")
-        u = dict(self.sync.uniforms(t), lt=t - s["start"], sec_id=float(self.sec_index[s["name"]]))
+        g = self.segment(t)
+        sec = self.sync.by_name[g["section"]]
+        name = g["scene"]
+        u = dict(self.sync.uniforms(t), lt=t - g["start"], sec_id=float(self.sec_index[g["section"]]))
         post = {"bloom_gain": 0.9, "glitch": 0.0, "aberr": 0.0015, "flash": 0.0, "fade": 1.0,
                 "scan": 1.0, "shake_x": 0.0, "shake_y": 0.0}
+        u["has_foot"], u["foot_aspect"] = 0.0, 16 / 9
+        if g["slot"]:
+            img = self.footage.frame(g["slot"], int(round((t - g["start"]) * FPS)))
+            if img is not None:
+                self.r.set_foot(img)
+                u["has_foot"] = 1.0
         extra = getattr(self, "scene_" + name, None)
         if extra:
-            extra(s, t, u, post)
+            extra(dict(g, end=g["end"], name=g["section"], sec_end=sec["end"]), t, u, post)
         for k, n in self.n_chars.items():
             u["n_" + k] = n
         return self.r.frame(name, u, post, fi)
