@@ -50,6 +50,7 @@ TIMELINE = [
     ("chorus2",   0,  "chorus",    None),
     ("outro",     0,  "outro",     None),
 ]
+NOTE_SCENES = {"kaleido", "blackhole", "grid", "record", "outro"}   # show the tribute note
 URL_BARS_CHORUS1 = 12            # chorus 1 adds the Store URL for its last ~8 bars (the 60 s cut ends there)
 FOOT_EXT = (".mp4", ".mov", ".mkv", ".webm")
 GREETZ = "GREETZ: ALL SCENERS * RUST & WGPU CREWS * VJS & NOISEMAKERS * AND YOU!"
@@ -233,7 +234,8 @@ in vec2 uv;
 out vec4 frag;
 uniform sampler2D scene, bloom;
 uniform vec2 res;
-uniform float bloom_gain, glitch, aberr, flash, fade, scan, shake_x, shake_y;
+uniform float bloom_gain, glitch, aberr, flash, fade, scan, shake_x, shake_y, note_on;
+uniform vec4 note_box;
 uniform int frame, seed;
 uint hash(uint x) { x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16; return x; }
 float h01(uint x) { return float(hash(x + uint(seed))) / 4294967295.0; }
@@ -243,8 +245,14 @@ void main() {
     uint fr = uint(frame / 2);
     float band = floor(u.y * 36.0);
     float on = step(1.0 - 0.55 * glitch, h01(uint(band) * 7919u + fr * 104729u));
-    u.x += on * glitch * (h01(uint(band) * 31u + fr * 613u) - 0.5) * 0.18;
+    vec2 ug = u + vec2(on * glitch * (h01(uint(band) * 31u + fr * 613u) - 0.5) * 0.18, 0.0);
     float ab = aberr + glitch * 0.012;
+    // the tribute note is exempt from the glitch, like the Store URL: no slice shift inside its
+    // box, and no shifted slice outside it may sample from inside it (that is what doubled it)
+    vec4 nb = note_box;
+    bool in_note = note_on > 0.5 && u.x > nb.x && u.x < nb.z && u.y > nb.y && u.y < nb.w;
+    bool from_note = note_on > 0.5 && ug.x > nb.x && ug.x < nb.z && ug.y > nb.y && ug.y < nb.w;
+    if (in_note || from_note) { ab = aberr; } else { u = ug; }
     vec3 c;
     c.r = texture(scene, u + vec2(ab, 0.0)).r;
     c.g = texture(scene, u).g;
@@ -450,6 +458,14 @@ class Film:
         self.n_chars = {k: float(len(v[0])) for k, v in TEXTS.items()}
         self.sec_index = {s["name"]: i for i, s in enumerate(self.sync.sections)}
         self.timeline(0.0)
+        # the tribute note's box in uv (matches tribute() in HEAD: h 0.05, centre y -0.94,
+        # right edge 0.04 in from the frame edge; plus the shade margin and a little more)
+        th, tw = self.r.tex["tribute"].size[1], self.r.tex["tribute"].size[0]
+        asp, h = W / H, 0.05
+        w = h * tw / th
+        x0, x1 = asp - 0.04 - w - 0.03, asp - 0.04 + 0.03
+        y0, y1 = -0.94 - h / 2 - 0.03, -0.94 + h / 2 + 0.03
+        self.note_box = (x0 / (2 * asp) + 0.5, y0 / 2 + 0.5, x1 / (2 * asp) + 0.5, y1 / 2 + 0.5)
         self.footage = Footage(*((640, 360) if H <= 480 else (1280, 720)))
 
     # --- per-scene uniforms: u is the shared sync dict, post the post-pass dict ---------
@@ -615,6 +631,8 @@ class Film:
         post = {"bloom_gain": 0.9, "glitch": 0.0, "aberr": 0.0015, "flash": 0.0, "fade": 1.0,
                 "scan": 1.0, "shake_x": 0.0, "shake_y": 0.0}
         u["has_foot"], u["foot_aspect"] = 0.0, 16 / 9
+        post["note_on"] = float(name in NOTE_SCENES)
+        post["note_box"] = self.note_box
         if g["slot"]:
             img = self.footage.frame(g["slot"], int(round((t - g["start"]) * FPS)))
             if img is not None:
@@ -643,7 +661,8 @@ def main():
     a = ap.parse_args()
 
     H = a.res
-    W = H if a.square else int(round(H * 16 / 9 / 2)) * 2
+    # 16:9 width rounded down to a multiple of 16: 480p -> 848x480 (854 crashes Parole), 1080p -> 1920
+    W = H if a.square else int(H * 16 / 9) // 16 * 16
     film = Film(W, H)
     if a.full:
         f0, n = 0, film.sync.n_frames
