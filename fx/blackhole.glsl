@@ -15,8 +15,8 @@ void main() {
     vec2 q = rot(swirl) * p * (1.025 + 0.02 * pull + 0.015 * kick);
     vec2 fu = q / vec2(asp, 1.0) * 0.5 + 0.5;
     vec3 c = texture(prev, fu).rgb * (0.93 - 0.04 * pull);
-    // the caption band and placeholder tag are overlays: never feed them back into the swirl
-    float overlay = step(abs(q.y + 0.76), 0.12) + step(0.78, q.y) * step(abs(q.x), 0.8);
+    // the caption band and the tribute note are overlays: never feed them back into the swirl
+    float overlay = step(abs(q.y + 0.76), 0.12) + step(q.y, -0.91);   // caption band, tribute note strip
     c *= 1.0 - clamp(overlay, 0.0, 1.0);
     c = mix(c, c.gbr, 0.015);                                    // slow hue drift in the trails
 
@@ -37,6 +37,6 @@ void main() {
     vec3 outc = mix(c, vec3(0.0, 0.0, 0.02), 0.8 * bandm);
     outc += typed(t_blackhole, p, vec2(0.0, by), 0.13, 1.75, cap_r, n_blackhole, step(0.5, fract(time * 2.3)))
          * vec3(1.0, 0.6, 0.95) * 1.3;
-    outc = ph_label(outc, p, vec2(0.0, 0.86));
+    outc = tribute(outc, p, smoothstep(0.0, 0.4, lt));
     frag = vec4(outc, 1.0);
 }

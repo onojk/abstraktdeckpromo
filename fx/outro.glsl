@@ -26,5 +26,6 @@ void main() {
     float yo = 0.07 * sin(time * 3.0 + slot * 0.28);
     float a = text(t_greetz, p, vec2(cx, -0.25 + yo), h, 100.0);
     c += a * hsv(slot / 24.0 + time * 0.15, 0.55, 1.0) * 1.35;
+    c = tribute(c, p, smoothstep(0.0, 0.4, lt));
     frag = vec4(c, 1.0);
 }

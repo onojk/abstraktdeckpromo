@@ -27,6 +27,6 @@ void main() {
     c = mix(c, vec3(0.0, 0.0, 0.02), 0.8 * bandm);
     c += typed(t_kaleido, p, vec2(0.0, by), 0.13, 1.6, cap_r, n_kaleido, step(0.5, fract(time * 2.3)))
          * vec3(0.4, 1.0, 0.95) * 1.3;
-    c = ph_label(c, p, vec2(0.0, 0.86));
+    c = tribute(c, p, smoothstep(0.0, 0.4, lt));
     frag = vec4(c, 1.0);
 }

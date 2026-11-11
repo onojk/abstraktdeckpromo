@@ -63,7 +63,7 @@ TEXTS = {   # name: (text, font, size px, pixel)
     "reactive":  ("AUDIO-REACTIVE", FONT_PIXEL, 18, True),
     "dance":     ("VISUALS THAT DANCE TO YOUR MUSIC", FONT_PIXEL, 18, True),
     "todo":      ("SCENE TO COME", FONT_PIXEL, 18, True),
-    "ph":        ("[ PLACEHOLDER: APP FOOTAGE ]", FONT_PIXEL, 18, True),
+    "tribute":   ("DEMOSCENE TRIBUTE - NOT ACTUAL APP FOOTAGE", FONT_PIXEL, 18, True),
     "kaleido":   ("KALEIDOSCOPES", FONT_PIXEL, 18, True),
     "blackhole": ("BLACK-HOLE FEEDBACK", FONT_PIXEL, 18, True),
     "grid":      ("MULTI-PANEL GRIDS", FONT_PIXEL, 18, True),
@@ -161,7 +161,7 @@ vec3 stars(vec2 p, float spd, float warp) {
 }
 // App footage: st in 0..1 (mirrored outside). With no clip in footage/ yet, a stand-in in
 // the app's own look (rainbow rings inside a turning polygon, reacting to the spectrum).
-uniform sampler2D t_foot, t_ph;
+uniform sampler2D t_foot;
 uniform float has_foot, foot_aspect;
 vec3 foot(vec2 st) {
     st = 1.0 - abs(1.0 - mod(st, 2.0));
@@ -175,17 +175,19 @@ vec3 foot(vec2 st) {
     c *= 0.75 + 0.25 * smoothstep(0.0, 0.15, fract(ring));      // a dark seam between rings
     return c * (0.4 + 0.7 * b);
 }
-// the label shown in every footage slot until a real clip is in
-vec3 ph_label(vec3 col, vec2 p, vec2 c) {
-    if (has_foot > 0.5) return col;
-    float blink = 0.6 + 0.4 * step(0.5, fract(time * 1.2));
-    vec2 ts = vec2(textureSize(t_ph, 0));
-    float h = 0.075, w = h * ts.x / ts.y;
-    vec2 d = abs(p - c) - vec2(w * 0.5 + 0.03, h * 0.5 + 0.025);
-    float box = step(max(d.x, d.y), 0.0);
-    float edge = box * (1.0 - step(max(d.x, d.y), -0.006));
-    float a = text(t_ph, p, c, h, 1.8);
-    return mix(col, vec3(0.0), 0.92 * box) + vec3(1.0, 0.85, 0.2) * (a * blink + edge);
+// the honest note: the stand-ins are a tribute, not screen captures. Small pixel type in the
+// bottom-right corner, steady and dim, on a faint shade so it reads over any colour; it sits
+// below every caption band (lowest caption edge -0.89) and never shares a scene with the URL.
+uniform sampler2D t_tribute;
+vec3 tribute(vec3 col, vec2 p, float on) {
+    vec2 ts = vec2(textureSize(t_tribute, 0));
+    float h = 0.05;
+    float w = h * ts.x / ts.y;
+    vec2 c = vec2(res.x / res.y - 0.04 - w * 0.5, -0.94);
+    vec2 d = abs(p - c) - vec2(w * 0.5 + 0.015, h * 0.5 + 0.012);
+    float shade = step(max(d.x, d.y), 0.0);
+    float a = text(t_tribute, p, c, h, 2.0);
+    return mix(col, vec3(0.0), 0.6 * shade * on) + vec3(0.78) * a * on;
 }
 """
 

@@ -30,7 +30,7 @@ void main() {
     float prog = fract(lt / 20.0);
     float bar = step(abs(p.y + m.y - 0.06), 0.008) * step(-m.x + 0.08, p.x) * step(p.x, -m.x + 0.08 + prog * (2.0 * m.x - 0.16));
     c += bar * vec3(1.0, 0.2, 0.15);
-    c = ph_label(c, p, vec2(0.0, 0.40));
+    c = tribute(c, p, smoothstep(0.0, 0.4, lt));
 
     // caption under the viewfinder; the F12 key on the right of the caption
     float by = -0.84;
