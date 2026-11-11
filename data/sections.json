@@ -1,0 +1,104 @@
+{
+ "duration": 195.52,
+ "confirmed": null,
+ "sections": [
+  {
+   "name": "intro",
+   "role": "intro",
+   "start": 0.0,
+   "raw": 0.0,
+   "bar": 0.39,
+   "why": "pads + voice, no drums: 'ONOJK123 Art presents / Abstrakt... Deck!'",
+   "end": 28.767
+  },
+  {
+   "name": "verse1",
+   "role": "verse",
+   "start": 28.767,
+   "raw": 28.77,
+   "bar": 16.94,
+   "why": "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48)",
+   "end": 92.567
+  },
+  {
+   "name": "breakdown",
+   "role": "verse",
+   "start": 92.567,
+   "raw": 92.57,
+   "bar": 53.64,
+   "why": "novelty 0.37; bass drops out (low 0.14), centred voice-band peak: pre-chorus",
+   "end": 98.667
+  },
+  {
+   "name": "chorus1",
+   "role": "chorus",
+   "start": 98.667,
+   "raw": 98.67,
+   "bar": 57.15,
+   "why": "novelty 0.36; biggest lift so far (rms 0.34 -> 0.59, high 0.72)",
+   "end": 134.033
+  },
+  {
+   "name": "break",
+   "role": "verse",
+   "start": 134.033,
+   "raw": 134.03,
+   "bar": 77.5,
+   "why": "novelty 0.41; side channel collapses (near-mono at 136 s); chroma matches the intro (0.85)",
+   "end": 139.7
+  },
+  {
+   "name": "verse2",
+   "role": "verse",
+   "start": 139.7,
+   "raw": 139.7,
+   "bar": 80.76,
+   "why": "novelty 0.59; full band back",
+   "end": 170.2
+  },
+  {
+   "name": "chorus2",
+   "role": "chorus",
+   "start": 170.2,
+   "raw": 170.2,
+   "bar": 98.31,
+   "why": "novelty 0.25; loudest block (rms 0.71-0.79); chroma matches 28.8 block (0.62) and verse 2 (0.54)",
+   "end": 185.0
+  },
+  {
+   "name": "outro",
+   "role": "outro",
+   "start": 185.0,
+   "raw": 185.0,
+   "bar": 106.82,
+   "why": "novelty 1.00 (strongest): highs drop out (0.75 -> 0.19), bass rides to the end",
+   "end": 195.52
+  }
+ ],
+ "hits": [
+  {
+   "name": "title_hit",
+   "t": 28.767,
+   "raw": 28.77,
+   "why": "drums enter: the ABSTRAKT DECK slam"
+  },
+  {
+   "name": "verse1_b",
+   "t": 43.567,
+   "raw": 43.57,
+   "why": "novelty 0.51: highs drop (0.48 -> 0.17), second half of verse 1"
+  },
+  {
+   "name": "verse1_build",
+   "t": 71.533,
+   "raw": 71.53,
+   "why": "novelty 0.25: mids and highs climb toward the chorus"
+  },
+  {
+   "name": "music_end",
+   "t": 191.4,
+   "raw": 191.6,
+   "why": "level falls under -26 dBFS (192-194 s): the tail"
+  }
+ ]
+}
