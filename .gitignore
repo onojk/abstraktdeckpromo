@@ -1,0 +1,18 @@
+# large media and generated files stay out of git
+audio/
+footage/
+frames/
+renders/
+cache/
+*.wav
+*.mp3
+*.flac
+*.mp4
+*.mov
+*.mkv
+*.gif
+*.png
+*.jpg
+__pycache__/
+*.pyc
+.venv/
