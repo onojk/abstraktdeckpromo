@@ -450,7 +450,8 @@ class Footage:
         return self.last
 
 class Film:
-    def __init__(self, W, H):
+    def __init__(self, W, H, fast_sub=False):
+        self.fast_sub = fast_sub     # the title loop types its subtitle twice as fast, so it reads in 2 bars
         self.sync = Sync()
         self.r = Renderer(W, H)
         for name, (text, font, size, pixel) in TEXTS.items():
@@ -489,7 +490,8 @@ class Film:
         h, bp = self.sync.hits, self.sync.period
         lt = t - h["title_hit"]
         u["slam"] = decay(t, h["title_hit"], 0.09)
-        u["sub_r"] = (lt - bp) / (26 * bp / 4)                        # a char per 16th
+        rate = 8 if self.fast_sub else 4                              # chars per beat: 16ths (32nds in the loop)
+        u["sub_r"] = (lt - bp) / (26 * bp / rate)
         u["sweep"] = (t - h["title_hit"]) / (4 * bp) % 1.0            # specular sweep every bar
         shake = decay(t, h["title_hit"], 0.25) + 0.6 * decay(t, h["shout"], 0.2)
         post["shake_x"] = 0.02 * shake * (np.sin(t * 91.0) )
@@ -658,12 +660,13 @@ def main():
     ap.add_argument("--crf", type=int, default=20)
     ap.add_argument("--preset", default="veryfast")
     ap.add_argument("--still", action="append", type=float, default=[])
+    ap.add_argument("--fast-sub", action="store_true", help="title loop: type the subtitle in 32nds")
     a = ap.parse_args()
 
     H = a.res
     # 16:9 width rounded down to a multiple of 16: 480p -> 848x480 (854 crashes Parole), 1080p -> 1920
     W = H if a.square else int(H * 16 / 9) // 16 * 16
-    film = Film(W, H)
+    film = Film(W, H, a.fast_sub)
     if a.full:
         f0, n = 0, film.sync.n_frames
     elif a.section:

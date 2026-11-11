@@ -19,7 +19,9 @@ joins downbeat to downbeat. Each audio piece gets a 10 ms fade at its edges (no 
 change in length), so picture and sound stay frame-locked.
 
 The loop is the 2 bars from the title hit: slam, subtitle typing, the beat bounce; its last
-frame runs into the next slam, so it repeats on the beat.
+frame runs into the next slam, so it repeats on the beat. Its subtitle types in 32nds
+(render.py --fast-sub), so the full line holds for ~1.6 s before the loop comes round; at
+the film's 16ths it would finish only 0.2 s before the end.
 """
 import argparse, json, os, subprocess, sys
 import numpy as np
@@ -49,12 +51,12 @@ def pieces():
     C = (beat_frame(b, S["outro"]["start"]), int(round(json.load(open(os.path.join(HERE, "cache", "features.json")))["duration"] * FPS)))
     return [("A", *A), ("B", *B), ("C", *C)]
 
-def render_piece(tag, f0, f1, res, square, out):
+def render_piece(tag, f0, f1, res, square, out, extra=()):
     cmd = [PY, os.path.join(HERE, "render.py"), out, "--audio", "", "--res", str(res),
            "--start", f"{f0 / FPS:.6f}", "--dur", f"{(f1 - f0) / FPS:.6f}", "--crf", "18"]
     if square:
         cmd.append("--square")
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd + list(extra), check=True)
 
 def cut(res):
     tmp = os.path.join(RENDERS, "cut"); os.makedirs(tmp, exist_ok=True)
@@ -92,7 +94,7 @@ def loop(res):
     b, S = beats(), sections()
     f0 = beat_frame(b, S["title"]["start"]); f1 = beat_frame(b, S["title"]["start"], 8)   # 2 bars
     mp4 = os.path.join(RENDERS, "abstrakt_deck_title_loop.mp4")
-    render_piece("loop", f0, f1, res, True, mp4)
+    render_piece("loop", f0, f1, res, True, mp4, ["--fast-sub"])
     gif = os.path.join(RENDERS, "abstrakt_deck_title_loop.gif")
     vf = "fps=15,scale=600:600:flags=lanczos,split[a][b];[a]palettegen=max_colors=192:stats_mode=diff[p];[b][p]paletteuse=dither=sierra2_4a"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", mp4, "-filter_complex", vf, "-loop", "0", gif], check=True)

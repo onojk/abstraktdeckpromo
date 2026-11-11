@@ -69,3 +69,7 @@ stand-in visuals in the app's look, not screen captures; they carry the note
   The title section is 8.5 bars and chorus 1 is 20.5 (verse 1 enters half a bar late), so
   the cuts drop those half bars and join downbeat to downbeat. Audio checked against the
   source in each piece: 0 to 2 samples' lag; 10 ms fades at the splices, no clicks.
+- `abstrakt_deck_title_loop.gif` (600x600, 15 fps, 52 frames, 3.47 s, 8,353,060 bytes) and
+  `abstrakt_deck_title_loop.mp4` (1080x1080, 30 fps, 1,966,735 bytes): the 2 bars from the
+  title hit (0:28.767-0:32.233), looping on the downbeat into the slam. The subtitle types at
+  double speed here (`--fast-sub`) so the full line reads before the loop comes round.
