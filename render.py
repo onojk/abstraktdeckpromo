@@ -516,7 +516,7 @@ class Film:
     def scene_scanline(self, s, t, u, post):
         bp = self.sync.period
         u["squeeze"] = ramp(t, s["start"], s["start"] + 4 * bp)       # CRT collapses to a line in a bar
-        u["dot"] = ramp(t, s["end"] - 2 * bp, s["end"])              # then to a dot
+        u["pinch"] = ramp(t, s["end"] - 2 * bp, s["end"])              # then to a dot
         post["glitch"] = 0.25 * u["pulse"]
         post["flash"] = 0.4 * decay(t, s["start"], 0.1)
 
