@@ -52,8 +52,7 @@ TIMELINE = [
 ]
 URL_BARS_CHORUS1 = 12            # chorus 1 adds the Store URL for its last ~8 bars (the 60 s cut ends there)
 FOOT_EXT = (".mp4", ".mov", ".mkv", ".webm")
-GREETZ = ("GREETZ TO ALL SCENERS  *  THE RUST & WGPU CREWS  *  EVERY VJ AND NOISEMAKER  *  "
-          "AND YOU, FOR WATCHING!")
+GREETZ = "GREETZ: ALL SCENERS * RUST & WGPU CREWS * VJS & NOISEMAKERS * AND YOU!"
 
 TEXTS = {   # name: (text, font, size px, pixel)
     "onojk":     ("ONOJK123", FONT_PIXEL, 18, True),
@@ -577,10 +576,11 @@ class Film:
         lt = t - s["start"]
         end = self.sync.duration
         u["plat_r"] = (lt - 0.5 * bp) / (26 * bp / 8)
-        # the greetz cross the screen from right edge to off the left by the music's end
-        u["scroll"] = (t - s["start"]) / (self.sync.hits["music_end"] - s["start"])
+        # the greetz enter at the right edge a beat in and are off the left 0.3 s before the end
+        u["scroll"] = (t - s["start"] - bp) / (end - 0.3 - s["start"] - bp)
+        u["logo_on"] = ramp(t, s["start"], s["start"] + bp)
         post["flash"] = 0.5 * decay(t, s["start"], 0.1)
-        post["fade"] = 1.0 - ramp(t, self.sync.hits["music_end"], end - 0.3)
+        post["fade"] = 1.0 - ramp(t, end - 1.6, end - 0.1)
 
     def timeline(self, t):
         """The scene segment at time t: dict(scene, slot, start, end, section)."""
