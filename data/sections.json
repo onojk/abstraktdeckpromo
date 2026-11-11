@@ -12,12 +12,21 @@
    "end": 28.767
   },
   {
-   "name": "verse1",
-   "role": "verse",
+   "name": "title",
+   "role": "title",
    "start": 28.767,
    "raw": 28.77,
    "bar": 16.94,
-   "why": "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48)",
+   "why": "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48): instrumental title hit",
+   "end": 43.567
+  },
+  {
+   "name": "verse1",
+   "role": "verse",
+   "start": 43.567,
+   "raw": 43.57,
+   "bar": 25.45,
+   "why": "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (inferred; the author's answer was blank)",
    "end": 92.567
   },
   {
@@ -77,16 +86,46 @@
  ],
  "hits": [
   {
+   "name": "type1",
+   "t": 1.067,
+   "raw": 1.07,
+   "why": "first downbeat: type ONOJK123"
+  },
+  {
+   "name": "type2",
+   "t": 7.433,
+   "raw": 7.5,
+   "why": "centred voice-band phrase 7.5-13.5 s: type ART PRESENTS"
+  },
+  {
+   "name": "gap",
+   "t": 13.933,
+   "raw": 13.75,
+   "why": "hard silence (-inf in the voice band for one quarter-second): cut to black"
+  },
+  {
+   "name": "tease",
+   "t": 17.433,
+   "raw": 17.5,
+   "why": "centred phrase 17.5-18.75 s: ABSTRAKT flickers in"
+  },
+  {
+   "name": "build",
+   "t": 23.533,
+   "raw": 23.5,
+   "why": "mid band steps up (40 -> 48 dB): starfield warps toward the hit"
+  },
+  {
    "name": "title_hit",
    "t": 28.767,
    "raw": 28.77,
    "why": "drums enter: the ABSTRAKT DECK slam"
   },
   {
-   "name": "verse1_b",
-   "t": 43.567,
-   "raw": 43.57,
-   "why": "novelty 0.51: highs drop (0.48 -> 0.17), second half of verse 1"
+   "name": "shout",
+   "t": 34.867,
+   "raw": 35.0,
+   "why": "near-mono burst 35.0-36.25 s (M-S 16 dB): extra flash"
   },
   {
    "name": "verse1_build",

@@ -26,7 +26,8 @@ CONFIRMED = None                 # set to "<who>, <date>" once the author checks
 # (name, role, start s, why)
 RAW = [
     ("intro",     "intro",   0.0,    "pads + voice, no drums: 'ONOJK123 Art presents / Abstrakt... Deck!'"),
-    ("verse1",    "verse",   28.77,  "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48)"),
+    ("title",     "title",   28.77,  "novelty peak 0.44; drums and bass enter (low 0.2 -> 0.41, high -> 0.48): instrumental title hit"),
+    ("verse1",    "verse",   43.57,  "novelty 0.51; highs drop (0.48 -> 0.17) and the centred voice band jumps (M-S 4.8 -> 10.8): vocals start (inferred; the author's answer was blank)"),
     ("breakdown", "verse",   92.57,  "novelty 0.37; bass drops out (low 0.14), centred voice-band peak: pre-chorus"),
     ("chorus1",   "chorus",  98.67,  "novelty 0.36; biggest lift so far (rms 0.34 -> 0.59, high 0.72)"),
     ("break",     "verse",   134.03, "novelty 0.41; side channel collapses (near-mono at 136 s); chroma matches the intro (0.85)"),
@@ -36,8 +37,13 @@ RAW = [
 ]
 # sub-boundaries inside sections: hits, not cuts
 HITS = [
+    ("type1",       1.07,  "first downbeat: type ONOJK123"),
+    ("type2",       7.50,  "centred voice-band phrase 7.5-13.5 s: type ART PRESENTS"),
+    ("gap",         13.75, "hard silence (-inf in the voice band for one quarter-second): cut to black"),
+    ("tease",       17.50, "centred phrase 17.5-18.75 s: ABSTRAKT flickers in"),
+    ("build",       23.50, "mid band steps up (40 -> 48 dB): starfield warps toward the hit"),
     ("title_hit",   28.77, "drums enter: the ABSTRAKT DECK slam"),
-    ("verse1_b",    43.57, "novelty 0.51: highs drop (0.48 -> 0.17), second half of verse 1"),
+    ("shout",       35.00, "near-mono burst 35.0-36.25 s (M-S 16 dB): extra flash"),
     ("verse1_build", 71.53, "novelty 0.25: mids and highs climb toward the chorus"),
     ("music_end",   191.6, "level falls under -26 dBFS (192-194 s): the tail"),
 ]
